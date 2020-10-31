@@ -1,0 +1,155 @@
+---
+title: "Assignment 8"
+subtitle: ""
+
+author:
+  - Boyi Zhang^[
+    Department of Statistics, University of Connecticut.]
+    
+    
+    
+    
+date: "`r format(Sys.Date())`"
+documentclass: article
+papersize: letter
+fontsize: 11pt
+biblio-style: asa
+output:
+  pdf_document:  default
+  html_document: default
+  
+--- 
+
+\newpage
+# Ex 5.3.3
+## Show
+Multiply a factor $e^{\alpha t}$ and reorganized it:
+$$
+\mathrm{d}(e^{\alpha t}r(t))=e^{\alpha t}\alpha b \mathrm{d}t+e^{\alpha t}\sigma \mathrm{d}W(t)
+$$
+Then, we integral it w.r.t. $t$ from $(t,t+\Delta)$:
+$$e^{\alpha (t+\Delta)}r(t+\Delta)-e^{\alpha t}r(t)=b(e^{\alpha(t+\Delta)}-e^{\alpha t})+\sigma\int_0^{\Delta}e^{\alpha (t+\Delta-s)}\mathrm{d}W(s)
+$$
+Multiply the factor $e^{-\alpha(t+\Delta)}$ for every terms and reorganized it, we got:
+$$r(t+\Delta)=e^{-\alpha\Delta}r(t)+b(1-e^{-\alpha \Delta})+\sigma\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s)
+$$
+Right now we just need to prove that:
+$$\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s)=\frac{1}{\sqrt{2\alpha}}\sqrt{1-e^{-2\alpha\Delta}}Z$$
+Here we use the Itô isometry as a tool,
+
+\begin{equation}\begin{split} 
+\mathbb{E}\left[\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s)\right]^2 &= \int_0^{\Delta}(e^{-\alpha s})^2\mathrm{d}s\\
+& =\int_0^{\Delta}e^{-2\alpha s}\mathrm{d}s\\
+& = -\frac{1}{2\alpha}[e^{-2\alpha\Delta}-1]
+\end{split}\end{equation}
+
+So,
+$$
+\left[\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s)\right]^2 \sim \frac{1}{2\alpha}[1-e^{-2\alpha\Delta}]\chi^2(1)
+$$
+Then take the root square.$$
+\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s) \sim \frac{1}{\sqrt{2\alpha}}\sqrt{1-e^{-2\alpha\Delta}}Z
+$$
+
+## Use the transition distribution from the last part to implement a random walk construction for the process on time interval  
+```{r}
+rOU <- function(a,sigma,b,r0=1,T=500,delta=1/500){
+  n = T/delta
+  r = r0
+  ou = c(r)
+  
+  K = exp(-a*delta)
+  S = b*(1-exp(-a*delta))
+  H = sigma/sqrt(2*a)*sqrt(1-exp(-2*a*delta))
+  P = rnorm(n)
+  for(i in 1:n){
+    r = K*r+S+H*P[i]
+    #ou = append(ou,r)
+    ou[i+1] = r
+  }
+  return(ou)
+}
+S.1.15 = rOU(0.1,0.1,5)
+S.1.25 = rOU(0.1,0.2,5)
+S.1.55 = rOU(0.1,0.5,5)
+S5.15 = rOU(5,0.1,5)
+S5.25 = rOU(5,0.2,5)
+S5.55 = rOU(5,0.5,5)
+S1.15 = rOU(1,0.1,5)
+S1.25 = rOU(1,0.2,5)
+S1.55 = rOU(1,0.5,5)
+S.1.1.5 = rOU(0.1,0.1,-5)
+S.1.2.5 = rOU(0.1,0.2,-5)
+S.1.5.5 = rOU(0.1,0.5,-5)
+S5.1.5 = rOU(5,0.1,-5)
+S5.2.5 = rOU(5,0.2,-5)
+S5.5.5 = rOU(5,0.5,-5)
+S1.1.5 = rOU(1,0.1,-5)
+S1.2.5 = rOU(1,0.2,-5)
+S1.5.5 = rOU(1,0.5,-5)
+```
+For easily see the behavior, we controlled the ancillary parameter. First, we tend to compare the $\sigma$, so keep $b$ and $\alpha$ the same. Randomly choose, 1st chart is for $b=5,\alpha=0.1$, 2nd chart is for $b=-5,\alpha=5$.
+```{r}
+x = seq(0,500,by=1/500)
+plot(x,S.1.55,type='l')
+lines(x,S.1.25,col='green')
+lines(x,S.1.15,col='red')
+legend(1,8.2, legend=c("sigma=0.5", "sigma=0.2","sigma=0.1"),
+       col=c("black","green", "red"),lty=1,cex=0.8)
+```
+```{r}
+x = seq(0,500,by=1/500)
+plot(x,S5.5.5,type='l')
+lines(x,S5.2.5,col='green')
+lines(x,S5.1.5,col='red')
+legend(1,-1, legend=c("sigma=0.5", "sigma=0.2","sigma=0.1"),
+       col=c("black","green", "red"),lty=1,cex=0.8)
+```
+
+As we can see, $\sigma$ is the degree of amplitude. the smaller $\sigma$, the more stable of $r(t)$. So-called diffusion.
+
+Then, we detect the behavior about $\alpha$
+```{r}
+x = seq(0,500,by=1/500)
+plot(x,S.1.2.5,type='l')
+lines(x,S1.2.5,col='green')
+lines(x,S5.2.5,col='red')
+legend(1,-1, legend=c("alpha=0.1", "alpha=1","alpha=5"),
+       col=c("black","green", "red"),lty=1,cex=0.8)
+```
+The larger $\alpha$ is, the time reached around $b$ is faster, and also the more range they may attained. So-called drift.
+
+## Use the Euler–Maruyama method (or the Euler method; see Wiki) to approximate a simulation from the process.
+Here, we fixed the initial setting $\alpha=1,\sigma=0.5,b=-5$.
+
+```{r}
+eOU <- function(a,sigma,b,delta,r0=1,n=1000,m=1/delta){
+  eu = numeric(0)
+  for(j in 1:n){
+    r = r0
+    for(i in 1:m){
+      r = rnorm(1,mean = r+a*(b-r)*delta,sd = sigma*delta)
+    }
+    eu[j] = r
+  }
+  eu
+}
+
+eu = numeric(0)
+for(j in 1:1000){
+  eu[j] = rOU(1,0.5,-2,T=1,delta=1)[2]
+}
+
+plot(density(eu),ylim = c(0,10),type='l')
+lines(density(eOU(1,0.5,-2,.01)),type='l',col='red')
+lines(density(eOU(1,0.5,-2,.1)),type='l',col='green')
+lines(density(eOU(1,0.5,-2,.5)),type='l',col='yellow')
+lines(density(eOU(1,0.5,-2,1)),type='l',col='blue')
+legend(0,4, legend=c("real density","delta=0.01", "delta=0.1","delta=0.5","delta=1"),
+       col=c("black","red","green", "yellow","blue"),lty=1,cex=0.8)
+```
+The finer(smaller) the delta is, the more accurate the expect value of r(1) will get. However, the variance may be over small than expected in the real density. As we can see, even though the mean of real density has been estimated when delta is small, the closest variance was realized by a median value $0.5$ in this case instead.
+
+
+
+bookdown::render_book('hw.rmd','bookdown::gitbook')
