@@ -43,7 +43,7 @@ Here we use the Itô isometry as a tool,
 & = -\frac{1}{2\alpha}[e^{-2\alpha\Delta}-1]
 \end{split}\end{equation}
 
-So,
+So, according to $\mathrm{d} W^2(s)\sim \mathrm{d}t\cdot\chi^2(1)$:
 $$
 \left[\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s)\right]^2 \sim \frac{1}{2\alpha}[1-e^{-2\alpha\Delta}]\chi^2(1)
 $$
