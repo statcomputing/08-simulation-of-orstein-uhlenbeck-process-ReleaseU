@@ -48,10 +48,11 @@ $$
 \left[\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s)\right]^2 \sim \frac{1}{2\alpha}[1-e^{-2\alpha\Delta}]\chi^2(1)
 $$
 Then take the root square.$$
-\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s) \sim \frac{1}{\sqrt{2\alpha}}\sqrt{1-e^{-2\alpha\Delta}}Z
-$$
+\int_0^{\Delta}e^{-\alpha s}\mathrm{d}W(s) \sim \frac{1}{\sqrt{2\alpha}}\sqrt{1-e^{-2\alpha\Delta}}Z$$
+
 
 ## Use the transition distribution from the last part to implement a random walk construction for the process on time interval  
+
 ```{r}
 rOU <- function(a,sigma,b,r0=1,T=500,delta=1/500){
   n = T/delta
@@ -150,6 +151,42 @@ legend(0,4, legend=c("real density","delta=0.01", "delta=0.1","delta=0.5","delta
 ```
 The finer(smaller) the delta is, the more accurate the expect value of r(1) will get. However, the variance may be over small than expected in the real density. As we can see, even though the mean of real density has been estimated when delta is small, the closest variance was realized by a median value $0.5$ in this case instead.
 
+
+# Ex 5.3.4
+
+## distribution of $N(5)$
+Notice that 
+$$\int\lambda(x) \mathrm{d}x=\frac{e^{-x}(-\sin(2\pi x)-2\pi\cos(2\pi x))}{4\pi^2+1}+\frac{2x^{3/2}}{3}+C$$
+So,
+$$\Lambda(5)=\int_0^5\lambda(x)\mathrm{d}x=\frac{2e^{-5}(4\times5^{3/2}e^5\pi^2+(3e^5-3)\pi+5^{3/2}e^5)}{3(4\pi^2+1)}\approx7.607737136139157$$
+
+So, $N(5)\sim \mathrm{Poisson}(7.607737136139157)$.
+
+## Write a function to simulate from this Poisson process.
+
+```{r}
+rnhpp <- function(intensity, intmax, tmax) {
+    n <- rpois(1, intmax)
+    tt <- runif(n, 0, tmax)
+    u <- runif(n)
+    accept <- u < intensity(tt) / intmax
+    sort(tt[accept])
+}
+
+intfun <- function(x) sin(2 * pi * x) * exp(-x) + sqrt(x)
+
+simulate <- rnhpp(intfun, 7.607737136139157, 5)
+```
+
+## Generate events from this Poisson process 1,000 times.
+```{r}
+together = unlist(replicate(1000, rnhpp(intfun, 7.607737136139157, 5)))
+plot(density(together),xlim=c(0,5),lty=2,pch=17,col="blue",main = "Sample v.s. Ratio")
+sintfun <- function(x) (sin(2 * pi * x) * exp(-x) + sqrt(x))/7.607737136139157
+plot(sintfun,xlim = c(0,5),lty=1,pch=15,col = 'red',add=TRUE)
+legend("topleft", inset=.05, title="Line Type", c("acceptance ratio","sample density"), lty=c(1, 2), col=c("red", "blue"))
+```
+That we can see these two lines fitted quiet well in some degree.
 
 
 bookdown::render_book('hw.rmd','bookdown::gitbook')
