@@ -180,11 +180,18 @@ simulate <- rnhpp(intfun, 7.607737136139157, 5)
 
 ## Generate events from this Poisson process 1,000 times.
 ```{r}
-together = unlist(replicate(1000, rnhpp(intfun, 7.607737136139157, 5)))
-plot(density(together),xlim=c(0,5),lty=2,pch=17,col="blue",main = "Sample v.s. Ratio")
-sintfun <- function(x) (sin(2 * pi * x) * exp(-x) + sqrt(x))/7.607737136139157
-plot(sintfun,xlim = c(0,5),lty=1,pch=15,col = 'red',add=TRUE)
-legend("topleft", inset=.05, title="Line Type", c("acceptance ratio","sample density"), lty=c(1, 2), col=c("red", "blue"))
+together = unlist(replicate(1000, 
+                            rnhpp(intfun, 7.607737136139157, 5)))
+plot(density(together),
+     xlim=c(0,5),lty=2,pch=17,col="blue",
+     main = "Sample v.s. Ratio")
+sintfun <- function(x) (sin(2 * pi * x) * exp(-x) + sqrt(x)) / 
+  7.607737136139157
+plot(sintfun,
+     xlim = c(0,5),lty=1,pch=15,col = 'red',add=TRUE)
+legend("topleft", inset=.05, title="Line Type", 
+       c("acceptance ratio","sample density"), 
+       lty=c(1, 2), col=c("red", "blue"))
 ```
 That we can see these two lines fitted quiet well in some degree.
 
